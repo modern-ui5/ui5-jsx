@@ -1,0 +1,47 @@
+{
+  "name": "ui5-lib-template",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A template repository for a UI5 library project written in TypeScript.",
+  "type": "module",
+  "browser": "./dist/main.js",
+  "types": "./dist/main.d.ts",
+  "scripts": {
+    "build": "npm run build-test && tsc --project ./tsconfig.json --noEmit && tsc --project ./tsconfig.build.json",
+    "docs": "typedoc --titleLink \"https://github.com/modern-ui5/ui5-lib-template#readme\" --includeVersion ./src/main.ts",
+    "build-test": "babel ./src --out-dir ./test/dist --extensions .ts && tsc --project ./tsconfig.test.json",
+    "test": "npm run build-test && wdio run ./wdio.conf.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/modern-ui5/typed-model.git"
+  },
+  "keywords": [
+    "ui5",
+    "openui5",
+    "sapui5"
+  ],
+  "author": "Yichuan Shen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/modern-ui5/ui5-lib-template/issues"
+  },
+  "homepage": "https://github.com/modern-ui5/ui5-lib-template#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.22.9",
+    "@babel/core": "^7.22.9",
+    "@babel/preset-env": "^7.22.9",
+    "@babel/preset-typescript": "^7.22.5",
+    "@babel/register": "^7.22.5",
+    "@openui5/types": "^1.116.0",
+    "@wdio/browser-runner": "^8.13.12",
+    "@wdio/cli": "^8.13.12",
+    "@wdio/mocha-framework": "^8.12.1",
+    "@wdio/spec-reporter": "^8.12.2",
+    "babel-plugin-ui5-esm": "^1.0.1",
+    "chromedriver": "^115.0.0",
+    "typedoc": "^0.24.8",
+    "typescript": "^5.1.6",
+    "wdio-chromedriver-service": "^8.1.1"
+  }
+}
