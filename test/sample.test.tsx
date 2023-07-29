@@ -1,3 +1,5 @@
+/** @jsxImportSource #internal */
+
 import "@wdio/globals/types";
 import "./loadUi5.js";
 import { expect } from "@wdio/globals";

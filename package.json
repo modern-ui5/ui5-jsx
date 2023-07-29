@@ -1,32 +1,54 @@
 {
-  "name": "ui5-lib-template",
+  "name": "ui5-jsx",
   "version": "1.0.0",
-  "private": true,
-  "description": "A template repository for a UI5 library project written in TypeScript.",
+  "description": "Use JSX to build views with UI5 controls.",
   "type": "module",
-  "browser": "./dist/main.js",
+  "exports": {
+    ".": {
+      "browser": "./dist/main.js",
+      "types": "./dist/main.d.ts"
+    },
+    "./jsx-runtime": {
+      "browser": "./dist/jsx-runtime.js",
+      "types": "./dist/jsx-runtime.d.ts"
+    }
+  },
+  "imports": {
+    "#internal/jsx-runtime": {
+      "browser": "./dist/jsx-runtime.js",
+      "types": "./dist/jsx-runtime.d.ts"
+    },
+    "#internal/jsx-dev-runtime": {
+      "browser": "./dist/jsx-runtime.js",
+      "types": "./dist/jsx-runtime.d.ts"
+    }
+  },
   "types": "./dist/main.d.ts",
   "scripts": {
-    "build": "npm run build-test && tsc --project ./tsconfig.json --noEmit && tsc --project ./tsconfig.build.json",
-    "docs": "typedoc --titleLink \"https://github.com/modern-ui5/ui5-lib-template#readme\" --includeVersion ./src/main.ts",
-    "build-test": "babel ./src --out-dir ./test/dist --extensions .ts && tsc --project ./tsconfig.test.json",
-    "test": "npm run build-test && wdio run ./wdio.conf.js"
+    "build": "tsc --project ./tsconfig.build.json && tsc --project ./tsconfig.json --noEmit",
+    "docs": "typedoc --titleLink \"https://github.com/modern-ui5/ui5-jsx#readme\" --includeVersion ./src/main.ts",
+    "test": "npm run build && wdio run ./wdio.conf.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/modern-ui5/typed-model.git"
+    "url": "git+https://github.com/modern-ui5/ui5-jsx.git"
   },
   "keywords": [
     "ui5",
     "openui5",
-    "sapui5"
+    "sapui5",
+    "jsx",
+    "view"
   ],
   "author": "Yichuan Shen",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/modern-ui5/ui5-lib-template/issues"
+    "url": "https://github.com/modern-ui5/ui5-jsx/issues"
   },
-  "homepage": "https://github.com/modern-ui5/ui5-lib-template#readme",
+  "homepage": "https://github.com/modern-ui5/ui5-jsx#readme",
+  "peerDependencies": {
+    "ui5-typed-model": "1.x"
+  },
   "devDependencies": {
     "@babel/cli": "^7.22.9",
     "@babel/core": "^7.22.9",
@@ -42,6 +64,7 @@
     "chromedriver": "^115.0.0",
     "typedoc": "^0.24.8",
     "typescript": "^5.1.6",
+    "ui5-typed-model": "^1.0.1",
     "wdio-chromedriver-service": "^8.1.1"
   }
 }
