@@ -25,9 +25,10 @@
   },
   "types": "./dist/main.d.ts",
   "scripts": {
-    "build": "tsc --project ./tsconfig.build.json && tsc --project ./tsconfig.json --noEmit",
+    "build": "tsc --project ./tsconfig.build.json && npm run build-test && tsc --project ./tsconfig.json --noEmit",
     "docs": "typedoc --titleLink \"https://github.com/modern-ui5/ui5-jsx#readme\" --includeVersion ./src/main.ts",
-    "test": "npm run build && wdio run ./wdio.conf.js"
+    "build-test": "tsc --project ./tsconfig.test.json && babel ./test --out-dir ./test_build --extensions .ts,.tsx && webpack --config ./webpack.test.config.js --mode development",
+    "test": "npm run build-test && wdio run ./wdio.conf.js"
   },
   "repository": {
     "type": "git",
@@ -52,6 +53,7 @@
   "devDependencies": {
     "@babel/cli": "^7.22.9",
     "@babel/core": "^7.22.9",
+    "@babel/plugin-transform-react-jsx": "^7.22.5",
     "@babel/preset-env": "^7.22.9",
     "@babel/preset-typescript": "^7.22.5",
     "@babel/register": "^7.22.5",
@@ -60,11 +62,15 @@
     "@wdio/cli": "^8.13.12",
     "@wdio/mocha-framework": "^8.12.1",
     "@wdio/spec-reporter": "^8.12.2",
+    "babel-loader": "^9.1.3",
     "babel-plugin-ui5-esm": "^1.0.1",
     "chromedriver": "^115.0.0",
+    "ts-loader": "^9.4.4",
     "typedoc": "^0.24.8",
     "typescript": "^5.1.6",
     "ui5-typed-model": "^1.0.1",
-    "wdio-chromedriver-service": "^8.1.1"
+    "wdio-chromedriver-service": "^8.1.1",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
   }
 }

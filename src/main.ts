@@ -1,3 +1,1 @@
-export function sample(): string {
-  return "Hello World!";
-}
+export * from "./ui5-component.js";
