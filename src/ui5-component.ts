@@ -1,5 +1,5 @@
 import type Event from "sap/ui/base/Event";
-import type ManagedObject from "sap/ui/base/ManagedObject";
+import ManagedObject from "sap/ui/base/ManagedObject";
 import type {
   AggregationBindingInfo,
   MetadataOptions,
@@ -10,6 +10,7 @@ import {
   TypedModel,
   TypedPropertyBindingInfo,
 } from "ui5-typed-model";
+import type { JSX } from "./jsx-runtime.js";
 
 type Ui5Props<T> = T extends new (id: any, props: infer P) => any
   ? NonNullable<P>
@@ -26,6 +27,12 @@ type Ui5Properties<T, P = Ui5Props<T>> = OmitNever<{
     PropertyBindingInfo
   >
     ? Exclude<P[K], PropertyBindingInfo | `{${string}}`>
+    : never;
+}>;
+
+type Ui5Events<T, P = Ui5Props<T>> = OmitNever<{
+  [K in keyof P]-?: NonNullable<P[K]> extends (event: Event<infer _>) => void
+    ? P[K]
     : never;
 }>;
 
@@ -59,46 +66,34 @@ type Ui5MultipleAggregations<T> = OmitNever<
   >
 >;
 
-type Ui5Events<T, P = Ui5Props<T>> = OmitNever<{
-  [K in keyof P]-?: NonNullable<P[K]> extends (event: Event<infer _>) => void
-    ? P[K]
-    : never;
-}>;
+const aggregationSym = Symbol("aggregation");
+
+export interface AggregationComponentProps<T> {
+  bind?: TypedAggregationBindingInfo<T>;
+  children?: JSX.Element | JSX.Element[];
+}
+
+export type AggregationComponent<T> = (
+  props: AggregationComponentProps<T>
+) => JSX.Element & {
+  [aggregationSym]: {
+    name: string;
+    aggregation: MetadataOptions.Aggregation;
+    children?: TypedAggregationBindingInfo<T> | JSX.Element[];
+  };
+};
 
 export type Ui5ComponentProps<T extends typeof ManagedObject> = {
   id?: string;
   ref?: (control: InstanceType<T>) => void;
-  children?: ManagedObject | ManagedObject[];
+  children?: JSX.Element | JSX.Element[];
 } & {
   [K in keyof Ui5Properties<T>]?:
     | Ui5Properties<T>[K]
     | TypedPropertyBindingInfo<Ui5Properties<T>[K]>;
 } & {
   [K in keyof Ui5Events<T> as `on${Capitalize<K>}`]?: Ui5Events<T>[K];
-};
-
-export type AggregationComponent<T> = (props: {
-  bind?: TypedAggregationBindingInfo<T>;
-  children?: ManagedObject | ManagedObject[];
-}) => Aggregation<T>;
-
-export class Aggregation<T> {
-  constructor(
-    public name: string,
-    public aggregation: MetadataOptions.Aggregation,
-    children: TypedAggregationBindingInfo<T> | T | T[]
-  ) {
-    if (
-      !(children instanceof TypedAggregationBindingInfo) &&
-      !Array.isArray(children)
-    ) {
-      children = [children];
-    }
-    this.children = children;
-  }
-
-  children: TypedAggregationBindingInfo<T> | T[];
-}
+} & Partial<Ui5SingleAggregations<T>>;
 
 export type Ui5Component<T extends typeof ManagedObject> = {
   (props: Ui5ComponentProps<T>): InstanceType<T>;
@@ -112,7 +107,7 @@ function capitalize(key: string) {
   return key[0].toUpperCase() + key.slice(1);
 }
 
-export function Ui5<T extends typeof ManagedObject>(
+function convertComponent<T extends typeof ManagedObject>(
   control: T
 ): Ui5Component<T> {
   const aggregations = control.getMetadata().getAllAggregations();
@@ -184,17 +179,27 @@ export function Ui5<T extends typeof ManagedObject>(
       if (!Array.isArray(props.children)) props.children = [props.children];
 
       for (const child of props.children) {
-        if (child instanceof Aggregation) {
-          if (child.children instanceof TypedAggregationBindingInfo) {
-            const typedModel = child.children.typedModel;
+        if (aggregationSym in child) {
+          const aggregationInfo = (
+            child as ReturnType<AggregationComponent<T>>
+          )[aggregationSym];
+
+          if (aggregationInfo.children instanceof TypedAggregationBindingInfo) {
+            const typedModel = aggregationInfo.children.typedModel;
             const name = bindModel(typedModel);
 
-            child.children.model = name;
-            result.bindAggregation(child.name, child.children);
+            aggregationInfo.children.model = name;
+            result.bindAggregation(
+              aggregationInfo.name,
+              aggregationInfo.children
+            );
           } else {
-            for (const control of child.children) {
+            for (const control of aggregationInfo.children ?? []) {
               result[
-                `add${capitalize(child.aggregation.singularName ?? child.name)}`
+                `add${capitalize(
+                  aggregationInfo.aggregation.singularName ??
+                    aggregationInfo.name
+                )}`
               ](control);
             }
           }
@@ -224,10 +229,29 @@ export function Ui5<T extends typeof ManagedObject>(
   for (const [name, aggregation] of Object.entries(aggregations)) {
     if (!aggregation.multiple) continue;
 
-    (component as any)[name] = (
-      props: Parameters<AggregationComponent<any>>[0]
-    ) => new Aggregation(name, aggregation, props.bind ?? props.children);
+    (component as any)[name] = (props: AggregationComponentProps<T>) =>
+      Object.assign(() => new ManagedObject(), {
+        [aggregationSym]: {
+          name,
+          aggregation,
+          children:
+            props.bind ??
+            (Array.isArray(props.children) || props.children == null
+              ? props.children
+              : [props.children]),
+        } satisfies ReturnType<
+          AggregationComponent<any>
+        >[typeof aggregationSym],
+      });
   }
 
   return component;
+}
+
+export function Ui5<const T extends readonly (typeof ManagedObject)[]>(
+  ...controls: T
+): {
+  [K in keyof T]: Ui5Component<T[K]>;
+} {
+  return controls.map((control) => convertComponent(control)) as any;
 }

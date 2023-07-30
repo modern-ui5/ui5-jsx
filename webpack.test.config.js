@@ -13,16 +13,13 @@ export default {
   module: {
     rules: [
       {
-        test: /\.[tj]sx?$/,
+        test: /\.js$/,
         use: {
           loader: "babel-loader",
           options: babelConfig,
         },
       },
     ],
-  },
-  resolve: {
-    extensions: [".js", ".ts", ".tsx"],
   },
   experiments: {
     outputModule: true,

@@ -1,10 +1,19 @@
 import type ManagedObject from "sap/ui/base/ManagedObject";
-import { Aggregation } from "./ui5-component.js";
 
-export function jsx() {}
+export function jsx(
+  type: (props: any) => JSX.Element,
+  props: Record<string, any>,
+  key?: any
+): JSX.Element {
+  if (props != null && key !== undefined) {
+    props.key = key;
+  }
+
+  return type(props);
+}
 
 export namespace JSX {
-  export type Element = ManagedObject | Aggregation<any>;
+  export type Element = ManagedObject;
   export type ElementClass = never;
 
   export interface IntrinsicElements {}

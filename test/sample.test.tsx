@@ -7,22 +7,20 @@ import { Ui5 } from "./dist/main.js";
 import _VBox from "sap/m/VBox";
 import _Button from "sap/m/Button";
 import _CustomData from "sap/ui/core/CustomData";
+import _Control from "sap/ui/core/Control";
 
 describe("Sample", () => {
   it("should work", async () => {
     expect(5).toEqual(5);
 
-    const VBox = Ui5(_VBox);
-    const Button = Ui5(_Button);
-    const CustomData = Ui5(_CustomData);
+    const [VBox, Button, CustomData] = Ui5(_VBox, _Button, _CustomData);
 
-    <VBox>
-      {/* <VBox.items>
-        <Button />
-      </VBox.items>
-      <VBox.customData>
+    let vbox!: _VBox;
 
-      </VBox.customData> */}
+    <VBox ref={(control) => (vbox = control)}>
+      <Button text="Hello World!" />
     </VBox>;
+
+    vbox.placeAt(document.body);
   });
 });
