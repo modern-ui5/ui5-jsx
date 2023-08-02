@@ -1,5 +1,6 @@
 import type Event from "sap/ui/base/Event";
 import ManagedObject from "sap/ui/base/ManagedObject";
+import type Control from "sap/ui/core/Control";
 import type {
   AggregationBindingInfo,
   MetadataOptions,
@@ -87,13 +88,17 @@ export type Ui5ComponentProps<T extends typeof ManagedObject> = {
   id?: string;
   ref?: (control: InstanceType<T>) => void;
   children?: JSX.Element | JSX.Element[];
-} & {
-  [K in keyof Ui5Properties<T>]?:
-    | Ui5Properties<T>[K]
-    | TypedPropertyBindingInfo<Ui5Properties<T>[K]>;
-} & {
-  [K in keyof Ui5Events<T> as `on${Capitalize<K>}`]?: Ui5Events<T>[K];
-} & Partial<Ui5SingleAggregations<T>>;
+} & (InstanceType<T> extends Control
+  ? {
+      class?: string;
+    }
+  : {}) & {
+    [K in keyof Ui5Properties<T>]?:
+      | Ui5Properties<T>[K]
+      | TypedPropertyBindingInfo<Ui5Properties<T>[K]>;
+  } & {
+    [K in keyof Ui5Events<T> as `on${Capitalize<K>}`]?: Ui5Events<T>[K];
+  } & Partial<Ui5SingleAggregations<T>>;
 
 export type Ui5Component<T extends typeof ManagedObject> = {
   (props: Ui5ComponentProps<T>): InstanceType<T>;
@@ -117,6 +122,10 @@ function convertComponent<T extends typeof ManagedObject>(
       Record<string, any>;
     const modelName = Symbol("name");
 
+    if ("class" in props && props.class != null) {
+      (result as unknown as Control).addStyleClass(props.class);
+    }
+
     const bindModel = (typedModel: TypedModel<any, any>): string => {
       const name = ((typedModel.model as { [modelName]?: string })[
         modelName
@@ -130,7 +139,7 @@ function convertComponent<T extends typeof ManagedObject>(
     };
 
     for (const key in props) {
-      if (["control", "id", "ref", "children"].includes(key)) continue;
+      if (["id", "ref", "class", "children"].includes(key)) continue;
 
       const value = props[key as keyof typeof props] as any;
 
