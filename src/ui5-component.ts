@@ -70,8 +70,7 @@ type Ui5MultipleAggregations<T> = OmitNever<
 const aggregationSym = Symbol("aggregation");
 
 export interface AggregationComponentProps<T> {
-  bind?: TypedAggregationBindingInfo<T>;
-  children?: JSX.Element | JSX.Element[];
+  children?: TypedAggregationBindingInfo<T> | JSX.Element | JSX.Element[];
 }
 
 export type AggregationComponent<T> = (
@@ -244,10 +243,11 @@ function convertComponent<T extends typeof ManagedObject>(
           name,
           aggregation,
           children:
-            props.bind ??
-            (Array.isArray(props.children) || props.children == null
+            props.children instanceof TypedAggregationBindingInfo ||
+            Array.isArray(props.children) ||
+            props.children == null
               ? props.children
-              : [props.children]),
+              : [props.children],
         } satisfies ReturnType<
           AggregationComponent<any>
         >[typeof aggregationSym],
