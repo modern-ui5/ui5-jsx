@@ -134,6 +134,14 @@ function convertComponent<T extends typeof ManagedObject>(
         typedModel.bindTo(result, name);
       }
 
+      if (typedModel.context != null) {
+        if (result.getBindingContext(name) == null) {
+          result.setBindingContext(typedModel.context, name);
+        } else if (result.getBindingContext(name) !== typedModel.context) {
+          throw new Error("cannot bind multiple contexts");
+        }
+      }
+
       return name;
     };
 
