@@ -119,16 +119,13 @@ function convertComponent<T extends typeof ManagedObject>(
   const component = ((props) => {
     const result = new control(props.id) as InstanceType<T> &
       Record<string, any>;
-    const modelName = Symbol("name");
 
     if ("class" in props && props.class != null) {
       (result as unknown as Control).addStyleClass(props.class);
     }
 
     const bindModel = (typedModel: TypedModel<any, any>): string => {
-      const name = ((typedModel.model as { [modelName]?: string })[
-        modelName
-      ] ??= crypto.randomUUID());
+      const name = typedModel.model.getId();
 
       if (result.getModel(name) !== typedModel.model) {
         typedModel.bindTo(result, name);
