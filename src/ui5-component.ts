@@ -6,11 +6,11 @@ import type {
   MetadataOptions,
   PropertyBindingInfo,
 } from "sap/ui/base/ManagedObject";
-import {
+import type {
   TypedAggregationBindingInfo,
   TypedModel,
   TypedPropertyBindingInfo,
-} from "./vendor.js";
+} from "ui5-typed-model";
 import type { JSX } from "./jsx-runtime.js";
 
 type Ui5Props<T> = T extends new (id: any, props: infer P) => any
@@ -150,21 +150,30 @@ function convertComponent<T extends typeof ManagedObject>(
 
       const value = props[key as keyof typeof props] as any;
 
-      if (key.startsWith("on")) {
+      if (
+        key.length > 2 &&
+        key.startsWith("on") &&
+        key[2] === key[2].toUpperCase()
+      ) {
         // Handle events
 
         result["attach" + key.slice(2)](value);
       } else {
         // Handle properties and 0..1 aggregations
 
-        if (value instanceof TypedPropertyBindingInfo) {
+        if (
+          Array.isArray(value.parts) ||
+          (typeof value.path === "string" && value.typedModel != null)
+        ) {
+          const binding = value as TypedPropertyBindingInfo<any>;
           const typedModels =
-            value.typedModel != null
-              ? [value.typedModel]
-              : value.parts
+            binding.typedModel != null
+              ? [binding.typedModel]
+              : binding.parts
                   ?.filter(
                     (part): part is TypedPropertyBindingInfo<any> =>
-                      part instanceof TypedPropertyBindingInfo &&
+                      typeof part !== "string" &&
+                      "typedModel" in part &&
                       part.typedModel != null
                   )
                   .map((part) => part.typedModel!) ?? [];
@@ -172,8 +181,8 @@ function convertComponent<T extends typeof ManagedObject>(
           for (const typedModel of typedModels) {
             const name = bindModel(typedModel);
 
-            value.model = name;
-            result.bindProperty(key, value);
+            binding.model = name;
+            result.bindProperty(key, binding);
           }
         } else {
           if (value == null && key in aggregations) {
@@ -200,16 +209,7 @@ function convertComponent<T extends typeof ManagedObject>(
             child as ReturnType<AggregationComponent<T>>
           )[aggregationSym];
 
-          if (aggregationInfo.children instanceof TypedAggregationBindingInfo) {
-            const typedModel = aggregationInfo.children.typedModel;
-            const name = bindModel(typedModel);
-
-            aggregationInfo.children.model = name;
-            result.bindAggregation(
-              aggregationInfo.name,
-              aggregationInfo.children
-            );
-          } else {
+          if (Array.isArray(aggregationInfo.children)) {
             for (const control of aggregationInfo.children ?? []) {
               result[
                 `add${capitalize(
@@ -218,6 +218,15 @@ function convertComponent<T extends typeof ManagedObject>(
                 )}`
               ](control);
             }
+          } else if (aggregationInfo.children != null) {
+            const typedModel = aggregationInfo.children.typedModel;
+            const name = bindModel(typedModel);
+
+            aggregationInfo.children.model = name;
+            result.bindAggregation(
+              aggregationInfo.name,
+              aggregationInfo.children
+            );
           }
         } else {
           if (defaultAggregationName == null) continue;
@@ -251,11 +260,9 @@ function convertComponent<T extends typeof ManagedObject>(
           name,
           aggregation,
           children:
-            props.children instanceof TypedAggregationBindingInfo ||
-            Array.isArray(props.children) ||
-            props.children == null
-              ? props.children
-              : [props.children],
+            props.children instanceof ManagedObject
+              ? [props.children]
+              : props.children,
         } satisfies ReturnType<
           AggregationComponent<any>
         >[typeof aggregationSym],
