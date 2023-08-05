@@ -2,10 +2,12 @@ import { fileURLToPath } from "node:url";
 import babelConfig from "./babel.config.js";
 
 export default {
-  entry: "./dist/main.js",
+  entry: {
+    vendor: "./dist/vendor.js",
+  },
   output: {
-    path: fileURLToPath(new URL("./test_build/dist", import.meta.url)),
-    filename: "main.js",
+    path: fileURLToPath(new URL("./test/dist", import.meta.url)),
+    filename: "[name].js",
     library: {
       type: "module",
     },
@@ -13,7 +15,7 @@ export default {
   module: {
     rules: [
       {
-        test: /\.js$/,
+        test: /\.[jt]s$/,
         use: {
           loader: "babel-loader",
           options: babelConfig,

@@ -10,7 +10,7 @@ import {
   TypedAggregationBindingInfo,
   TypedModel,
   TypedPropertyBindingInfo,
-} from "ui5-typed-model";
+} from "./vendor.js";
 import type { JSX } from "./jsx-runtime.js";
 
 type Ui5Props<T> = T extends new (id: any, props: infer P) => any

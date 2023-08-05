@@ -1,9 +1,8 @@
-/** @jsxImportSource #internal */
-
 import "@wdio/globals/types";
 import "./loadUi5.js";
 import { expect } from "@wdio/globals";
-import { Ui5, TypedModel } from "./dist/main.js";
+import { Ui5 } from "./dist/main.js";
+import { TypedModel } from "./dist/vendor.js";
 import _VBox from "sap/m/VBox";
 import _Button from "sap/m/Button";
 import _CustomData from "sap/ui/core/CustomData";
@@ -45,7 +44,5 @@ describe("Sample", () => {
 
     model.get((data) => data.items).splice(1, 1);
     model.model.refresh();
-
-    await new Promise((r) => setTimeout(r, 10000000));
   });
 });

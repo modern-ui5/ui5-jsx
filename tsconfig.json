@@ -8,7 +8,9 @@
     "strict": true,
     "sourceMap": true,
     "declaration": true,
+    "noEmit": true,
     "jsx": "react-jsx",
+    "jsxImportSource": "#internal",
     "incremental": true,
     "typeRoots": ["./node_modules/@types", "./node_modules/@openui5/types"]
   }

@@ -25,9 +25,9 @@
   },
   "types": "./dist/main.d.ts",
   "scripts": {
-    "build": "tsc --project ./tsconfig.build.json && npm run build-test && tsc --project ./tsconfig.json --noEmit",
+    "build": "tsc --project ./tsconfig.build.json && npm run build-test && tsc --project ./tsconfig.json",
     "docs": "typedoc --titleLink \"https://github.com/modern-ui5/ui5-jsx#readme\" --includeVersion ./src/main.ts",
-    "build-test": "tsc --project ./tsconfig.test.json && babel ./test --out-dir ./test_build --extensions .ts,.tsx && webpack --config ./webpack.test.config.js --mode development",
+    "build-test": "tsc --project ./tsconfig.test.json && webpack --config ./webpack.test.config.js --mode development && babel --out-dir ./test_build --extensions .ts,.tsx,.js ./test",
     "test": "npm run build-test && wdio run ./wdio.conf.js"
   },
   "repository": {
