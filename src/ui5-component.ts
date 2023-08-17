@@ -269,10 +269,15 @@ function convertComponent<T extends typeof ManagedObject>(
   return component;
 }
 
-export function Ui5<const T extends readonly (typeof ManagedObject)[]>(
-  ...controls: T
+export function Ui5<T extends Record<string, typeof ManagedObject>>(
+  controls: T
 ): {
   [K in keyof T]: Ui5Component<T[K]>;
 } {
-  return controls.map((control) => convertComponent(control)) as any;
+  return Object.assign(
+    {},
+    ...Object.entries(controls).map(([key, control]) => ({
+      [key]: convertComponent(control),
+    }))
+  );
 }

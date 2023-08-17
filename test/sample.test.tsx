@@ -3,10 +3,8 @@ import "./loadUi5.js";
 import { expect } from "@wdio/globals";
 import { Ui5 } from "./dist/main.js";
 import { TypedModel } from "./dist/vendor.js";
-import _VBox from "sap/m/VBox";
-import _Button from "sap/m/Button";
-import _CustomData from "sap/ui/core/CustomData";
-import _Control from "sap/ui/core/Control";
+import VBox from "sap/m/VBox";
+import Button from "sap/m/Button";
 
 describe("Sample", () => {
   it("should work", async () => {
@@ -15,16 +13,16 @@ describe("Sample", () => {
     const model = new TypedModel({
       items: [{ row: 0 }, { row: 1 }, { row: 2 }],
     });
-    const [VBox, Button, CustomData] = Ui5(_VBox, _Button, _CustomData);
+    const jsx = Ui5({ VBox, Button });
 
-    let vbox!: _VBox;
+    let vbox!: VBox;
 
-    <VBox class="content" ref={(control) => (vbox = control)}>
-      <VBox.items>
+    <jsx.VBox class="content" ref={(control) => (vbox = control)}>
+      <jsx.VBox.items>
         {model.aggregationBinding(
           (data) => data.items,
           (id, model) => (
-            <Button
+            <jsx.Button
               id={id}
               text={model
                 .binding((_, context) => context.row)
@@ -37,8 +35,8 @@ describe("Sample", () => {
             />
           )
         )}
-      </VBox.items>
-    </VBox>;
+      </jsx.VBox.items>
+    </jsx.VBox>;
 
     vbox.placeAt(document.body);
 
