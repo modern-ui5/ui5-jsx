@@ -1,7 +1,7 @@
 import "@wdio/globals/types";
 import "./loadUi5.js";
 import { expect } from "@wdio/globals";
-import { Ui5 } from "./dist/main.js";
+import { jsxify } from "./dist/main.js";
 import { TypedModel } from "./dist/vendor.js";
 import VBox from "sap/m/VBox";
 import Button from "sap/m/Button";
@@ -13,7 +13,7 @@ describe("Sample", () => {
     const model = new TypedModel({
       items: [{ row: 0 }, { row: 1 }, { row: 2 }],
     });
-    const jsx = Ui5({ VBox, Button });
+    const jsx = jsxify({ VBox, Button });
 
     let vbox!: VBox;
 

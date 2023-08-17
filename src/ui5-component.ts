@@ -269,7 +269,7 @@ function convertComponent<T extends typeof ManagedObject>(
   return component;
 }
 
-export function Ui5<T extends Record<string, typeof ManagedObject>>(
+export function jsxify<T extends Record<string, typeof ManagedObject>>(
   controls: T
 ): {
   [K in keyof T]: Ui5Component<T[K]>;
