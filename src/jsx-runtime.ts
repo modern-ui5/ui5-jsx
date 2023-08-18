@@ -1,9 +1,9 @@
 import type ManagedObject from "sap/ui/base/ManagedObject";
 
-export function jsx(
-  type: (props: any) => JSX.Element,
-  props: Record<string, any>,
-  key?: any
+export function jsx<T extends (props: any) => JSX.Element>(
+  type: T,
+  props: T extends (props: infer P) => infer _ ? P : {},
+  key?: never
 ): JSX.Element {
   if (props != null && key !== undefined) {
     props.key = key;
