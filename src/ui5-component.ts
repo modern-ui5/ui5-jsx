@@ -13,7 +13,7 @@ import type {
 } from "ui5-typed-model";
 import type { JSX } from "./jsx-runtime.js";
 
-type Ui5Props<T> = T extends new (id: any, props: infer P) => any
+type Ui5ControlSettings<T> = T extends new (id: any, props: infer P) => any
   ? NonNullable<P>
   : never;
 
@@ -22,7 +22,8 @@ type OmitNever<T> = Omit<
   { [K in keyof T]: T[K] extends never ? K : never }[keyof T]
 >;
 
-type Ui5Properties<T, P = Ui5Props<T>> = OmitNever<{
+// Property field types include `PropertyBindingInfo` in its union
+type Ui5Properties<T, P = Ui5ControlSettings<T>> = OmitNever<{
   [K in keyof P]-?: PropertyBindingInfo extends Extract<
     P[K],
     PropertyBindingInfo
@@ -31,41 +32,45 @@ type Ui5Properties<T, P = Ui5Props<T>> = OmitNever<{
     : never;
 }>;
 
-type Ui5Events<T, P = Ui5Props<T>> = OmitNever<{
+// Event field types are event handler functions with event argument
+type Ui5Events<T, P = Ui5ControlSettings<T>> = OmitNever<{
   [K in keyof P]-?: NonNullable<P[K]> extends (event: Event<infer _>) => void
     ? P[K]
     : never;
 }>;
 
-type Ui5Aggregations<T, P = Ui5Props<T>> = Omit<
-  {
-    [K in keyof P]-?: Exclude<P[K], AggregationBindingInfo | `{${string}}`>;
-  },
-  keyof Ui5Properties<T> | keyof Ui5Events<T>
->;
+// Single aggregation types are of the form `ManagedObject | undefined`
+type Ui5SingleAggregations<T, P = Ui5ControlSettings<T>> = OmitNever<{
+  [K in keyof P]-?: P[K] extends ManagedObject | undefined ? P[K] : never;
+}>;
 
-type Ui5SingleAggregations<T> = OmitNever<{
-  [K in keyof Ui5Aggregations<T>]: Extract<
-    Ui5Aggregations<T>[K],
-    any[]
-  > extends never
-    ? Ui5Aggregations<T>[K]
+// Multiple aggregation types include `AggregationBindingInfo` in its union
+type Ui5MultipleAggregations<T, P = Ui5ControlSettings<T>> = OmitNever<{
+  [K in keyof P]-?: AggregationBindingInfo extends Extract<
+    P[K],
+    AggregationBindingInfo
+  >
+    ? Exclude<P[K], AggregationBindingInfo | `{${string}}`>
     : never;
 }>;
 
-type Ui5MultipleAggregations<T> = OmitNever<
-  Omit<
-    {
-      [K in keyof Ui5Aggregations<T>]: Extract<
-        Ui5Aggregations<T>[K],
-        any[]
-      > extends (infer U)[]
-        ? U
-        : never;
-    },
-    keyof Ui5SingleAggregations<T>
-  >
->;
+// Single association types are of the form `string | ManagedObject | undefined`
+type Ui5SingleAssociations<T, P = Ui5ControlSettings<T>> = OmitNever<{
+  [K in keyof P]-?: P[K] extends string | ManagedObject | undefined
+    ? string extends P[K]
+      ? P[K]
+      : never
+    : never;
+}>;
+
+// Single association types are of the form `(string | ManagedObject)[] | undefined`
+type Ui5MultipleAssociations<T, P = Ui5ControlSettings<T>> = OmitNever<{
+  [K in keyof P]-?: P[K] extends (string | ManagedObject)[] | undefined
+    ? string[] extends P[K]
+      ? P[K]
+      : never
+    : never;
+}>;
 
 const aggregationSym = Symbol("aggregation");
 
@@ -93,7 +98,9 @@ export type Ui5JsxComponentProps<T extends typeof ManagedObject> = {
       | TypedPropertyBindingInfo<Ui5Properties<T>[K]>;
   } & {
     [K in keyof Ui5Events<T> as `on${Capitalize<K>}`]?: Ui5Events<T>[K];
-  } & Partial<Ui5SingleAggregations<T>>;
+  } & Partial<Ui5SingleAggregations<T>> &
+  Partial<Ui5SingleAssociations<T>> &
+  Partial<Ui5MultipleAssociations<T>>;
 
 export type Ui5JsxComponent<T extends typeof ManagedObject> = {
   (props: Ui5JsxComponentProps<T>): InstanceType<T>;
@@ -111,6 +118,7 @@ function convertComponent<T extends typeof ManagedObject>(
   control: T
 ): Ui5JsxComponent<T> {
   const aggregations = control.getMetadata().getAllAggregations();
+  const associations = control.getMetadata().getAllAssociations();
 
   const component = ((props) => {
     const result = new control(props.id) as InstanceType<T> &
@@ -151,6 +159,18 @@ function convertComponent<T extends typeof ManagedObject>(
         // Handle events
 
         result["attach" + key.slice(2)](value);
+      } else if (key in associations) {
+        // Handle associations
+
+        const association = associations[key];
+
+        if (association.multiple) {
+          for (const item of value ?? []) {
+            result[`add${capitalize(association.singularName ?? key)}`](item);
+          }
+        } else {
+          result[`set${capitalize(key)}`](value);
+        }
       } else {
         // Handle properties and 0..1 aggregations
 
@@ -158,6 +178,7 @@ function convertComponent<T extends typeof ManagedObject>(
           Array.isArray(value.parts) ||
           (typeof value.path === "string" && value.typedModel != null)
         ) {
+          // Handle `TypedPropertyBindingInfo`
           const binding = value as TypedPropertyBindingInfo<any>;
           const typedModels =
             binding.typedModel != null
@@ -178,13 +199,8 @@ function convertComponent<T extends typeof ManagedObject>(
             result.bindProperty(key, binding);
           }
         } else {
-          if (value == null && key in aggregations) {
-            // Destroy 0..1 aggregation
-            result[`destroy${capitalize(key)}`]();
-          } else {
-            // Set property or aggregation
-            result[`set${capitalize(key)}`](value);
-          }
+          // Set property or 0..1 aggregation
+          result[`set${capitalize(key)}`](value);
         }
       }
     }

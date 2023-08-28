@@ -5,6 +5,8 @@ import { createJsxComponents } from "./dist/main.js";
 import { TypedModel } from "./dist/vendor.js";
 import VBox from "sap/m/VBox";
 import Button from "sap/m/Button";
+import Select from "sap/m/Select";
+import MultiComboBox from "sap/m/MultiComboBox";
 
 describe("Sample", () => {
   it("should work", async () => {
@@ -13,7 +15,7 @@ describe("Sample", () => {
     const model = new TypedModel({
       items: [{ row: 0 }, { row: 1 }, { row: 2 }],
     });
-    const ui5 = createJsxComponents({ VBox, Button });
+    const ui5 = createJsxComponents({ VBox, Button, Select, MultiComboBox });
 
     let vbox!: VBox;
 
