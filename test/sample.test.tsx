@@ -1,7 +1,7 @@
 import "@wdio/globals/types";
 import "./loadUi5.js";
 import { expect } from "@wdio/globals";
-import { jsxify } from "./dist/main.js";
+import { createJsxComponents } from "./dist/main.js";
 import { TypedModel } from "./dist/vendor.js";
 import VBox from "sap/m/VBox";
 import Button from "sap/m/Button";
@@ -13,16 +13,16 @@ describe("Sample", () => {
     const model = new TypedModel({
       items: [{ row: 0 }, { row: 1 }, { row: 2 }],
     });
-    const jsx = jsxify({ VBox, Button });
+    const ui5 = createJsxComponents({ VBox, Button });
 
     let vbox!: VBox;
 
-    <jsx.VBox class="content" ref={(control) => (vbox = control)}>
-      <jsx.VBox.items>
+    <ui5.VBox class="content" ref={(control) => (vbox = control)}>
+      <ui5.VBox.items>
         {model.aggregationBinding(
           (data) => data.items,
           (id, model) => (
-            <jsx.Button
+            <ui5.Button
               id={id}
               text={model
                 .binding((_, context) => context.row)
@@ -35,8 +35,8 @@ describe("Sample", () => {
             />
           )
         )}
-      </jsx.VBox.items>
-    </jsx.VBox>;
+      </ui5.VBox.items>
+    </ui5.VBox>;
 
     vbox.placeAt(document.body);
 
