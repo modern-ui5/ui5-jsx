@@ -97,7 +97,7 @@ export type Ui5JsxComponentProps<T extends typeof ManagedObject> = {
       | Ui5Properties<T>[K]
       | TypedPropertyBindingInfo<Ui5Properties<T>[K]>;
   } & {
-    [K in keyof Ui5Events<T> as `on${Capitalize<K>}`]?: Ui5Events<T>[K];
+    [K in keyof Ui5Events<T> & string as `on${Capitalize<K>}`]?: Ui5Events<T>[K];
   } & Partial<Ui5SingleAggregations<T>> &
   Partial<Ui5SingleAssociations<T>> &
   Partial<Ui5MultipleAssociations<T>>;

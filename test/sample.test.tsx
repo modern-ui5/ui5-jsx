@@ -43,6 +43,6 @@ describe("Sample", () => {
     vbox.placeAt(document.body);
 
     model.get((data) => data.items).splice(1, 1);
-    model.model.refresh();
+    model.refresh();
   });
 });
