@@ -97,7 +97,10 @@ export type Ui5JsxComponentProps<T extends typeof ManagedObject> = {
       | Ui5Properties<T>[K]
       | TypedPropertyBindingInfo<Ui5Properties<T>[K]>;
   } & {
-    [K in keyof Ui5Events<T> & string as `on${Capitalize<K>}`]?: Ui5Events<T>[K];
+    [K in Extract<
+      keyof Ui5Events<T>,
+      string
+    > as `on${Capitalize<K>}`]?: Ui5Events<T>[K];
   } & Partial<Ui5SingleAggregations<T>> &
   Partial<Ui5SingleAssociations<T>> &
   Partial<Ui5MultipleAssociations<T>>;
@@ -263,19 +266,21 @@ function convertComponent<T extends typeof ManagedObject>(
   for (const [name, aggregation] of Object.entries(aggregations)) {
     if (!aggregation.multiple) continue;
 
-    (component as any)[name] = (props: AggregationJsxComponentProps<T>) =>
-      Object.assign(() => new ManagedObject(), {
-        [aggregationSym]: {
-          name,
-          aggregation,
-          children:
-            props.children instanceof ManagedObject
-              ? [props.children]
-              : props.children,
-        } satisfies ReturnType<
-          AggregationJsxComponent<any>
-        >[typeof aggregationSym],
-      });
+    Object.assign(component, {
+      [name]: (props: AggregationJsxComponentProps<T>) =>
+        Object.assign(() => new ManagedObject(), {
+          [aggregationSym]: {
+            name,
+            aggregation,
+            children:
+              props.children instanceof ManagedObject
+                ? [props.children]
+                : props.children,
+          } satisfies ReturnType<
+            AggregationJsxComponent<any>
+          >[typeof aggregationSym],
+        }),
+    });
   }
 
   return component;

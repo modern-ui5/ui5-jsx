@@ -4,12 +4,12 @@ export function jsx<T extends (props: any) => JSX.Element>(
   type: T,
   props: T extends (props: infer P) => infer _ ? P : {},
   key?: never
-): JSX.Element {
+): ReturnType<T> {
   if (props != null && key !== undefined) {
     props.key = key;
   }
 
-  return type(props);
+  return type(props) as ReturnType<T>;
 }
 
 export namespace JSX {

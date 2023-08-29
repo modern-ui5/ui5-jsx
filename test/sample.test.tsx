@@ -17,28 +17,28 @@ describe("Sample", () => {
     });
     const ui5 = createJsxComponents({ VBox, Button, Select, MultiComboBox });
 
-    let vbox!: VBox;
-
-    <ui5.VBox class="content" ref={(control) => (vbox = control)}>
-      <ui5.VBox.items>
-        {model.aggregationBinding(
-          (data) => data.items,
-          (id, model) => (
-            <ui5.Button
-              id={id}
-              text={model
-                .binding((_, context) => context.row)
-                .map((row) => `Button ${row}`)}
-              onPress={() => {
-                console.log(
-                  `You clicked row #${model.get((_, context) => context.row)}`
-                );
-              }}
-            />
-          )
-        )}
-      </ui5.VBox.items>
-    </ui5.VBox>;
+    const vbox = (
+      <ui5.VBox class="content">
+        <ui5.VBox.items>
+          {model.aggregationBinding(
+            (data) => data.items,
+            (id, model) => (
+              <ui5.Button
+                id={id}
+                text={model
+                  .binding((_, context) => context.row)
+                  .map((row) => `Button ${row}`)}
+                onPress={() => {
+                  console.log(
+                    `You clicked row #${model.get((_, context) => context.row)}`
+                  );
+                }}
+              />
+            )
+          )}
+        </ui5.VBox.items>
+      </ui5.VBox>
+    ) as VBox;
 
     vbox.placeAt(document.body);
 
